@@ -87,8 +87,6 @@ function Topbar() {
         />
       </div>
       <div className="topbar-actions">
-        <Bell className="topbar-icon" size={20} />
-        <HelpCircle className="topbar-icon" size={20} />
         <img src="https://ui-avatars.com/api/?name=Admin&background=e5e7eb" alt="Profile" className="avatar" />
       </div>
     </div>

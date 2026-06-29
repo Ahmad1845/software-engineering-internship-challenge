@@ -70,9 +70,6 @@ export default function AllTickets() {
           <h1 className="page-title">All Tickets</h1>
           <p className="page-subtitle">Manage and track all customer support requests.</p>
         </div>
-        <button className="btn-export">
-          <Download size={16} /> Export
-        </button>
       </div>
 
       <div className="card">
