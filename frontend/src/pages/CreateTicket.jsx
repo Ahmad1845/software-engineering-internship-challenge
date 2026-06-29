@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Send, AlertCircle } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -11,42 +12,44 @@ export default function CreateTicket() {
     customer_email: '',
     subject: '',
     description: '',
-    priority: 'Low'
+    priority: 'Medium'
   });
   
-  const [errors, setErrors] = useState([]);
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error for field on change
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: null });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors([]);
-    setIsSubmitting(true);
+    const newErrors = {};
     
     // Frontend validation
-    const newErrors = [];
-    if (!formData.customer_name) newErrors.push('Customer name is required');
-    if (!formData.customer_email || !/^\S+@\S+\.\S+$/.test(formData.customer_email)) newErrors.push('Valid customer email is required');
-    if (!formData.subject) newErrors.push('Subject is required');
-    if (!formData.description || formData.description.length < 10) newErrors.push('Description must contain at least 10 characters');
+    if (!formData.customer_name) newErrors.customer_name = 'Customer name is required';
+    if (!formData.customer_email || !/^\S+@\S+\.\S+$/.test(formData.customer_email)) newErrors.customer_email = 'Valid customer email is required';
+    if (!formData.subject) newErrors.subject = 'Subject is required';
+    if (!formData.description || formData.description.length < 10) newErrors.description = 'Description must be at least 10 characters long.';
     
-    if (newErrors.length > 0) {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setIsSubmitting(false);
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const res = await axios.post(`${API_URL}/tickets`, formData);
       navigate(`/ticket/${res.data.ticketId}`);
     } catch (err) {
       if (err.response && err.response.data.errors) {
-        setErrors(err.response.data.errors);
-      } else {
-        setErrors(['An unexpected error occurred.']);
+        // Simple mapping for backend errors if needed
+        console.error(err.response.data.errors);
+        alert('Server error: check console');
       }
     } finally {
       setIsSubmitting(false);
@@ -54,45 +57,57 @@ export default function CreateTicket() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h2 style={{ marginBottom: '1.5rem' }}>Create Support Ticket</h2>
+    <div>
+      <div className="page-header">
+        <h1 className="page-title">Create New Ticket</h1>
+        <p className="page-subtitle">Please fill in the details below to submit a new support request.</p>
+      </div>
       
-      <div className="card">
-        {errors.length > 0 && (
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '0.375rem', marginBottom: '1.5rem', border: '1px solid var(--priority-high)' }}>
-            <h4 style={{ color: 'var(--priority-high)', marginBottom: '0.5rem' }}>Please fix the following errors:</h4>
-            <ul style={{ color: 'var(--priority-high)', marginLeft: '1.5rem', fontSize: '0.875rem' }}>
-              {errors.map((err, idx) => <li key={idx}>{err}</li>)}
-            </ul>
-          </div>
-        )}
-
+      <div className="card form-container">
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Customer Name</label>
-            <input type="text" name="customer_name" className="form-input" value={formData.customer_name} onChange={handleChange} placeholder="John Doe" required />
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Customer Email</label>
-            <input type="email" name="customer_email" className="form-input" value={formData.customer_email} onChange={handleChange} placeholder="john@example.com" required />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Subject</label>
-            <input type="text" name="subject" className="form-input" value={formData.subject} onChange={handleChange} placeholder="Brief description of the issue" required />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea name="description" className="form-textarea" rows="5" value={formData.description} onChange={handleChange} placeholder="Detailed explanation of the issue (min 10 characters)" required />
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Note: Including the word "urgent" will automatically flag this ticket for immediate review.
+          <div className="form-grid">
+            <div className={`form-group ${errors.customer_name ? 'form-error' : ''}`} style={{ marginBottom: 0 }}>
+              <label className="form-label">CUSTOMER NAME</label>
+              <input 
+                type="text" 
+                name="customer_name" 
+                className="form-input" 
+                value={formData.customer_name} 
+                onChange={handleChange} 
+                placeholder="e.g. Jane Doe" 
+              />
+              {errors.customer_name && <div className="error-msg"><AlertCircle size={12}/> {errors.customer_name}</div>}
+            </div>
+            
+            <div className={`form-group ${errors.customer_email ? 'form-error' : ''}`} style={{ marginBottom: 0 }}>
+              <label className="form-label">CUSTOMER EMAIL</label>
+              <input 
+                type="email" 
+                name="customer_email" 
+                className="form-input" 
+                value={formData.customer_email} 
+                onChange={handleChange} 
+                placeholder="jane@example.com" 
+              />
+              {errors.customer_email && <div className="error-msg"><AlertCircle size={12}/> {errors.customer_email}</div>}
             </div>
           </div>
 
+          <div className={`form-group ${errors.subject ? 'form-error' : ''}`}>
+            <label className="form-label">SUBJECT</label>
+            <input 
+              type="text" 
+              name="subject" 
+              className="form-input" 
+              value={formData.subject} 
+              onChange={handleChange} 
+              placeholder="Brief summary of the issue" 
+            />
+            {errors.subject && <div className="error-msg"><AlertCircle size={12}/> {errors.subject}</div>}
+          </div>
+
           <div className="form-group">
-            <label className="form-label">Priority</label>
+            <label className="form-label">PRIORITY</label>
             <select name="priority" className="form-select" value={formData.priority} onChange={handleChange}>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -100,10 +115,29 @@ export default function CreateTicket() {
             </select>
           </div>
 
-          <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-            <button type="button" className="btn btn-outline" onClick={() => navigate('/')}>Cancel</button>
-            <button type="submit" className="btn" disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
+          <div className={`form-group ${errors.description ? 'form-error' : ''}`}>
+            <label className="form-label">DESCRIPTION *</label>
+            <textarea 
+              name="description" 
+              className="form-textarea" 
+              rows="6" 
+              value={formData.description} 
+              onChange={handleChange} 
+              placeholder="" 
+            />
+            {errors.description && (
+              <div className="error-msg">
+                <AlertCircle size={14}/> {errors.description}
+              </div>
+            )}
+          </div>
+
+          <div className="form-footer">
+            <button type="button" className="btn-text" onClick={() => navigate(-1)} style={{ color: '#1a56db' }}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Create Ticket'} <Send size={16} />
             </button>
           </div>
         </form>

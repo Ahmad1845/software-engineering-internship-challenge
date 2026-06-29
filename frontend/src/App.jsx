@@ -1,50 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Moon, Sun, Ticket } from 'lucide-react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Ticket as TicketIcon, Plus, Settings, LogOut, Search, Bell, HelpCircle, Headset } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
+import AllTickets from './pages/AllTickets';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
 
-function App() {
-  const [theme, setTheme] = useState('light');
+function Sidebar() {
+  const location = useLocation();
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
   };
 
   return (
-    <Router>
-      <div className="app">
-        <header className="header">
-          <Link to="/" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
-            <Ticket size={24} color="var(--accent-color)" />
-            <span style={{ fontWeight: 'bold' }}>SupportDesk</span>
-          </Link>
-          <nav className="nav-links">
-            <Link to="/" className="nav-link">Dashboard</Link>
-            <Link to="/create" className="btn">Create Ticket</Link>
-            <button onClick={toggleTheme} className="btn-outline" style={{ padding: '0.5rem', borderRadius: '50%' }} title="Toggle Dark Mode">
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
-          </nav>
-        </header>
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <div className="sidebar-logo-icon">
+          <Headset size={20} color="white" />
+        </div>
+        <div>
+          <div className="sidebar-logo-text">SupportDesk</div>
+          <div className="sidebar-logo-subtext">Internal Support</div>
+        </div>
+      </div>
 
-        <main className="container">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/create" element={<CreateTicket />} />
-            <Route path="/ticket/:id" element={<TicketDetail />} />
-          </Routes>
-        </main>
+      <div className="sidebar-nav">
+        <Link to="/" className={`nav-item ${isActive('/') && location.pathname === '/' ? 'active' : ''}`}>
+          <LayoutDashboard size={18} />
+          <span>Dashboard</span>
+        </Link>
+        <Link to="/tickets" className={`nav-item ${isActive('/tickets') || location.pathname.startsWith('/ticket/') ? 'active' : ''}`}>
+          <TicketIcon size={18} />
+          <span>All Tickets</span>
+        </Link>
+        <div className="nav-btn-wrapper">
+          <Link to="/create" style={{ textDecoration: 'none' }}>
+            <button className="btn-sidebar-new">
+              <Plus size={16} /> New Ticket
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="sidebar-footer">
+        <div className="nav-item">
+          <Settings size={18} />
+          <span>Settings</span>
+        </div>
+        <div className="nav-item">
+          <LogOut size={18} />
+          <span>Logout</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Topbar() {
+  return (
+    <div className="topbar">
+      <div className="search-wrapper">
+        <Search className="search-icon" size={16} />
+        <input type="text" className="search-input" placeholder="Search tickets..." />
+      </div>
+      <div className="topbar-actions">
+        <Bell className="topbar-icon" size={20} />
+        <HelpCircle className="topbar-icon" size={20} />
+        <img src="https://ui-avatars.com/api/?name=Admin&background=e5e7eb" alt="Profile" className="avatar" />
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-wrapper">
+          <Topbar />
+          <div className="page-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/tickets" element={<AllTickets />} />
+              <Route path="/create" element={<CreateTicket />} />
+              <Route path="/ticket/:id" element={<TicketDetail />} />
+            </Routes>
+          </div>
+        </div>
       </div>
     </Router>
   );

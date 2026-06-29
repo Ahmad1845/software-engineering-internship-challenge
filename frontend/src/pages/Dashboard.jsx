@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Clock, AlertCircle } from 'lucide-react';
+import { Ticket, Monitor, MoreHorizontal, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -9,33 +9,19 @@ export default function Dashboard() {
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({ total: 0, open: 0, inProgress: 0, resolved: 0, urgent: 0 });
   const [loading, setLoading] = useState(true);
-  
-  // Filters
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest');
 
   useEffect(() => {
     fetchDashboardData();
-  }, [search, statusFilter, priorityFilter, sortOrder]);
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Fetch stats
       const statsRes = await axios.get(`${API_URL}/dashboard`);
       setStats(statsRes.data);
 
-      // Fetch tickets
-      const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (statusFilter) params.append('status', statusFilter);
-      if (priorityFilter) params.append('priority', priorityFilter);
-      if (sortOrder) params.append('sort', sortOrder);
-
-      const ticketsRes = await axios.get(`${API_URL}/tickets?${params.toString()}`);
-      setTickets(ticketsRes.data.tickets);
+      const ticketsRes = await axios.get(`${API_URL}/tickets?sort=newest`);
+      setTickets(ticketsRes.data.tickets.slice(0, 5)); // Just show recent 5
     } catch (error) {
       console.error('Failed to fetch data', error);
     } finally {
@@ -45,114 +31,122 @@ export default function Dashboard() {
 
   const getStatusBadge = (status) => {
     const classMap = {
-      'Open': 'status-open',
-      'In Progress': 'status-in-progress',
-      'Resolved': 'status-resolved'
+      'Open': 'badge-status-open',
+      'In Progress': 'badge-status-progress',
+      'Resolved': 'badge-status-resolved'
     };
-    return <span className={`badge ${classMap[status]}`}>{status}</span>;
+    return <span className={`badge ${classMap[status]}`}>{status.toUpperCase()}</span>;
   };
 
-  const getPriorityBadge = (priority) => {
-    const classMap = {
-      'Low': 'badge-low',
-      'Medium': 'badge-medium',
-      'High': 'badge-high'
-    };
-    return <span className={`badge ${classMap[priority]}`}>{priority}</span>;
+  const getPriorityBadge = (priority, isUrgent) => {
+    if (isUrgent || priority === 'High') {
+      return <span className="badge badge-priority-high">HIGH</span>;
+    }
+    if (priority === 'Medium') {
+      return <span className="badge badge-priority-medium">NORMAL</span>; // Map medium to normal like screenshot
+    }
+    return <span className="badge badge-priority-low">LOW</span>;
+  };
+
+  const formatTicketId = (id) => {
+    return `TKT-${String(id).padStart(4, '0')}`;
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="grid-stats">
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--accent-color)' }}>
-          <h3>Total Tickets</h3>
-          <p style={{ color: 'var(--accent-color)' }}>{stats.total}</p>
-        </div>
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--status-open)' }}>
-          <h3>Open</h3>
-          <p style={{ color: 'var(--status-open)' }}>{stats.open}</p>
-        </div>
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--status-in-progress)' }}>
-          <h3>In Progress</h3>
-          <p style={{ color: 'var(--status-in-progress)' }}>{stats.inProgress}</p>
-        </div>
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--status-resolved)' }}>
-          <h3>Resolved</h3>
-          <p style={{ color: 'var(--status-resolved)' }}>{stats.resolved}</p>
-        </div>
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--priority-high)', backgroundColor: stats.urgent > 0 ? 'rgba(239, 68, 68, 0.05)' : '' }}>
-          <h3>Urgent</h3>
-          <p style={{ color: 'var(--priority-high)' }}>{stats.urgent}</p>
-        </div>
+    <div>
+      <div className="page-header">
+        <h1 className="page-title">Dashboard Overview</h1>
+        <p className="page-subtitle">Here is a summary of your queue today.</p>
       </div>
 
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 300px', position: 'relative' }}>
-            <Search style={{ position: 'absolute', top: '10px', left: '10px', color: 'var(--text-secondary)' }} size={20} />
-            <input 
-              type="text" 
-              className="form-input" 
-              placeholder="Search by name, email or subject..." 
-              style={{ paddingLeft: '2.5rem' }}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      <div className="stats-grid">
+        <div className="stat-box">
+          <div className="stat-header">
+            <Ticket size={16} /> Total Tickets
           </div>
-          <select className="form-select" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <select className="form-select" style={{ width: 'auto' }} value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-            <option value="">All Priorities</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-          <select className="form-select" style={{ width: 'auto' }} value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
+          <div className="stat-value">{stats.total}</div>
+          <div className="stat-subtext" style={{ color: 'var(--primary-blue)' }}>↗ +12% this week</div>
+        </div>
+
+        <div className="stat-box">
+          <div className="stat-header">
+            <Monitor size={16} /> Open Tickets
+          </div>
+          <div className="stat-value">{stats.open}</div>
+          <div className="stat-subtext">Needs assignment</div>
+        </div>
+
+        <div className="stat-box">
+          <div className="stat-header">
+            <MoreHorizontal size={16} /> In Progress
+          </div>
+          <div className="stat-value">{stats.inProgress}</div>
+          <div className="stat-subtext">Currently being worked on</div>
+        </div>
+
+        <div className="stat-box">
+          <div className="stat-header">
+            <CheckCircle size={16} /> Resolved
+          </div>
+          <div className="stat-value">{stats.resolved}</div>
+          <div className="stat-subtext" style={{ color: 'var(--primary-blue)' }}>↗ +5% vs last week</div>
+        </div>
+
+        <div className="stat-box urgent-box">
+          <div className="stat-header">
+            <AlertTriangle size={16} /> Urgent
+          </div>
+          <div className="stat-value">{stats.urgent}</div>
+          <div className="stat-subtext">Immediate action required</div>
         </div>
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading...</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {tickets.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-              No tickets found matching your criteria.
-            </div>
-          ) : (
-            tickets.map(ticket => (
-              <Link to={`/ticket/${ticket.id}`} key={ticket.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderLeft: ticket.is_urgent ? '4px solid var(--priority-high)' : 'none' }}>
-                  <div>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>#{ticket.id}</span>
-                      <h4 style={{ margin: 0, fontSize: '1.125rem' }}>{ticket.subject}</h4>
-                      {ticket.is_urgent ? <span className="badge badge-urgent"><AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }}/> URGENT</span> : null}
-                    </div>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>From: {ticket.customer_name}</p>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                        <Clock size={14} /> {new Date(ticket.created_date).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-                    {getStatusBadge(ticket.status)}
-                    {getPriorityBadge(ticket.priority)}
-                  </div>
-                </div>
-              </Link>
-            ))
-          )}
+      <div className="card">
+        <div className="table-header-flex">
+          <h2 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Recent Tickets</h2>
+          <Link to="/tickets" style={{ fontSize: '0.875rem', color: 'var(--primary-blue)', fontWeight: '600', textDecoration: 'none' }}>
+            View All
+          </Link>
         </div>
-      )}
+        
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+        ) : (
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>Subject</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map(ticket => (
+                  <tr key={ticket.id}>
+                    <td className="td-id">
+                      <Link to={`/ticket/${ticket.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {formatTicketId(ticket.id)}
+                      </Link>
+                    </td>
+                    <td>{ticket.customer_name}</td>
+                    <td>{ticket.subject}</td>
+                    <td>{getPriorityBadge(ticket.priority, ticket.is_urgent)}</td>
+                    <td>{getStatusBadge(ticket.status)}</td>
+                  </tr>
+                ))}
+                {tickets.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>No recent tickets.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
