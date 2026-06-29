@@ -56,6 +56,32 @@ cd backend
 npm test
 ```
 
+## API Endpoint Summary
+- `POST /api/tickets` - Create a new support ticket.
+- `GET /api/tickets` - Retrieve all tickets (supports `search` query parameter).
+- `GET /api/tickets/:id` - Retrieve a specific ticket by its ID.
+- `PATCH /api/tickets/:id` - Update a ticket's status (e.g., from Open to Resolved).
+- `GET /api/tickets/dashboard/stats` - Retrieve aggregate statistics for the dashboard.
+
+## Assumptions Made
+- The system is currently designed for internal support agents, so there is no authentication or login required at this stage.
+- All agents have equal permissions and can view/update any ticket.
+- SQLite is sufficient for the MVP and local development scale.
+
+## Duplicate Email Decision
+- **Decision:** Duplicate emails *are* allowed in the system.
+- **Reasoning:** A single customer might encounter multiple different issues over time and need to submit multiple tickets. Enforcing unique emails at the database level would prevent customers from submitting more than one request. 
+
+## Known Limitations
+- No user authentication or role-based access control (RBAC).
+- File attachments (like screenshots of an issue) cannot currently be uploaded.
+- SQLite is used locally, meaning it cannot be easily deployed across horizontally scaled, distributed servers without migrating to PostgreSQL or MySQL.
+
+## What I Would Build Next
+- **Authentication (JWT):** To track exactly *which* support agent resolved a ticket.
+- **Email Notifications:** Automatically email the customer when their ticket status is updated to "Resolved".
+- **Pagination:** Implement `LIMIT` and `OFFSET` in the backend so the frontend table doesn't load every historical ticket at once.
+
 ## Initiative Requirement
 
 ### 1. What you added
@@ -69,6 +95,15 @@ It reduces eye strain during long shifts, especially in low-light environments, 
 
 ### 4. What you would improve further
 Currently, the dark mode state is reset if the user refreshes the page. In the future, I would save their preference in the browser's `localStorage` or `sessionStorage` so that the application remembers their chosen theme across sessions.
+
+## Time Log
+
+- **Planning:** 30 minutes
+- **Backend and database:** 2 hours 15 minutes
+- **Frontend:** 2 hours 15 minutes
+- **Testing:** 30 minutes
+- **Documentation and improvements:** 45 minutes
+- **Total:** 6 hours 15 minutes
 
 ## Declaration
 
