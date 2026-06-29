@@ -120,7 +120,7 @@ export default function AllTickets() {
                     <td>{ticket.subject}</td>
                     <td>{getPriorityBadge(ticket.priority, ticket.is_urgent)}</td>
                     <td>{getStatusBadge(ticket.status)}</td>
-                    <td style={{ color: 'var(--text-muted)' }}>{new Date(ticket.created_date).toLocaleDateString()}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{new Date(ticket.created_date).toLocaleString()}</td>
                   </tr>
                 ))}
                 {tickets.length === 0 && (
