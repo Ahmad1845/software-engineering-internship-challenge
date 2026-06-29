@@ -71,6 +71,44 @@ export default function AllTickets() {
     return 'TKT-' + String(id).padStart(4, '0');
   };
 
+  // Initiative Requirement: Export tickets to CSV
+  const exportToCSV = function() {
+    if (tickets.length === 0) {
+      alert("No tickets to export!");
+      return;
+    }
+
+    // Create CSV Headers
+    let csvContent = "data:text/csv;charset=utf-users,\n";
+    csvContent += "ID,Customer Name,Email,Subject,Priority,Status,Urgent,Created Date\n";
+
+    // Loop through the tickets and add them as rows
+    for (let i = 0; i < tickets.length; i++) {
+      const t = tickets[i];
+      // We wrap text fields in quotes to prevent commas from breaking the CSV layout
+      const row = [
+        formatTicketId(t.id),
+        `"${t.customer_name}"`,
+        `"${t.customer_email}"`,
+        `"${t.subject.replace(/"/g, '""')}"`, // escape quotes in subject
+        t.priority,
+        t.status,
+        t.is_urgent ? "Yes" : "No",
+        new Date(t.created_date).toLocaleString()
+      ];
+      csvContent += row.join(",") + "\n";
+    }
+
+    // Trigger the file download in the browser
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "support_tickets.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link); // Clean up
+  };
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -78,6 +116,9 @@ export default function AllTickets() {
           <h1 className="page-title">All Tickets</h1>
           <p className="page-subtitle">Manage and track all customer support requests.</p>
         </div>
+        <button className="btn-export" onClick={exportToCSV}>
+          <Download size={16} /> Export to CSV
+        </button>
       </div>
 
       <div className="card">

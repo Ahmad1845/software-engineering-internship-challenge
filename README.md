@@ -56,6 +56,20 @@ cd backend
 npm test
 ```
 
+## Initiative Requirement
+
+### 1. What you added
+I implemented an **Export tickets to CSV** functionality on the "All Tickets" page. Users can click the "Export to CSV" button to download their currently viewed tickets as a `.csv` file.
+
+### 2. Why you selected it
+Support teams frequently need to analyze data offline, share reports with management, or import ticket data into tools like Microsoft Excel or Tableau.
+
+### 3. What problem it solves
+It frees data from being locked inside the dashboard. Instead of manually copying and pasting ticket rows to create a report, agents can instantly generate a structured CSV file that respects their active filters (e.g., exporting only "High" priority tickets).
+
+### 4. What you would improve further
+Currently, the export happens purely on the frontend and only exports the tickets currently visible in the table. In the future, I would move the CSV generation logic to the backend (e.g., via a `/api/tickets/export` endpoint) so users can export the *entire* database of historical tickets all at once.
+
 ## Declaration
 
 I confirm that I completed this challenge without using generative AI, an AI coding assistant, or an AI-enabled editor. I understand the submitted code and can explain and modify it.
