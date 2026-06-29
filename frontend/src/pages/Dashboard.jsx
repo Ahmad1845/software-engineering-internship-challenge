@@ -65,7 +65,6 @@ export default function Dashboard() {
             <Ticket size={16} /> Total Tickets
           </div>
           <div className="stat-value">{stats.total}</div>
-          <div className="stat-subtext" style={{ color: 'var(--primary-blue)' }}>↗ +12% this week</div>
         </div>
 
         <div className="stat-box">
@@ -89,7 +88,6 @@ export default function Dashboard() {
             <CheckCircle size={16} /> Resolved
           </div>
           <div className="stat-value">{stats.resolved}</div>
-          <div className="stat-subtext" style={{ color: 'var(--primary-blue)' }}>↗ +5% vs last week</div>
         </div>
 
         <div className="stat-box urgent-box">

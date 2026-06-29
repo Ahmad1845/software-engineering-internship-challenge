@@ -67,7 +67,7 @@ export default function CreateTicket() {
         <form onSubmit={handleSubmit}>
           <div className="form-grid">
             <div className={`form-group ${errors.customer_name ? 'form-error' : ''}`} style={{ marginBottom: 0 }}>
-              <label className="form-label">CUSTOMER NAME</label>
+              <label className="form-label">CUSTOMER NAME *</label>
               <input 
                 type="text" 
                 name="customer_name" 
@@ -80,7 +80,7 @@ export default function CreateTicket() {
             </div>
             
             <div className={`form-group ${errors.customer_email ? 'form-error' : ''}`} style={{ marginBottom: 0 }}>
-              <label className="form-label">CUSTOMER EMAIL</label>
+              <label className="form-label">CUSTOMER EMAIL *</label>
               <input 
                 type="email" 
                 name="customer_email" 
@@ -94,7 +94,7 @@ export default function CreateTicket() {
           </div>
 
           <div className={`form-group ${errors.subject ? 'form-error' : ''}`}>
-            <label className="form-label">SUBJECT</label>
+            <label className="form-label">SUBJECT *</label>
             <input 
               type="text" 
               name="subject" 
