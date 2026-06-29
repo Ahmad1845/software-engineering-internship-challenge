@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Ticket as TicketIcon, Plus, Settings, LogOut, Search, Bell, HelpCircle, Headset } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import AllTickets from './pages/AllTickets';
@@ -60,11 +60,31 @@ function Sidebar() {
 }
 
 function Topbar() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      if (searchTerm.trim()) {
+        navigate(`/tickets?search=${encodeURIComponent(searchTerm)}`);
+      } else {
+        navigate(`/tickets`);
+      }
+    }
+  };
+
   return (
     <div className="topbar">
       <div className="search-wrapper">
         <Search className="search-icon" size={16} />
-        <input type="text" className="search-input" placeholder="Search tickets..." />
+        <input 
+          type="text" 
+          className="search-input" 
+          placeholder="Search tickets..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleSearch}
+        />
       </div>
       <div className="topbar-actions">
         <Bell className="topbar-icon" size={20} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Download, AlertTriangle } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
@@ -12,10 +12,15 @@ export default function AllTickets() {
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [sortFilter, setSortFilter] = useState('newest');
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search') || '';
 
   useEffect(() => {
     fetchTickets();
-  }, [statusFilter, priorityFilter]);
+  }, [statusFilter, priorityFilter, sortFilter, searchQuery]);
 
   const fetchTickets = async () => {
     try {
@@ -23,7 +28,8 @@ export default function AllTickets() {
       const params = new URLSearchParams();
       if (statusFilter) params.append('status', statusFilter);
       if (priorityFilter) params.append('priority', priorityFilter);
-      params.append('sort', 'newest');
+      if (searchQuery) params.append('search', searchQuery);
+      params.append('sort', sortFilter);
 
       const ticketsRes = await axios.get(`${API_URL}/tickets?${params.toString()}`);
       setTickets(ticketsRes.data.tickets);
@@ -83,6 +89,10 @@ export default function AllTickets() {
               <option value="Open">Open</option>
               <option value="In Progress">In Progress</option>
               <option value="Resolved">Resolved</option>
+            </select>
+            <select className="form-select" style={{ width: '150px' }} value={sortFilter} onChange={(e) => setSortFilter(e.target.value)}>
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
             </select>
           </div>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
