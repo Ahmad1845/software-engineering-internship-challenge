@@ -34,7 +34,7 @@ router.post('/tickets', function(req, res) {
     }
     
     // Basic regex email validation
-    const emailRegex = /^\\S+@\\S+\\.\\S+$/;
+    const emailRegex = /^\S+@\S+\.\S+$/;
     if (!customer_email || !emailRegex.test(customer_email)) {
         errors.push('Valid customer email is required');
     }
