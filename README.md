@@ -59,16 +59,16 @@ npm test
 ## Initiative Requirement
 
 ### 1. What you added
-I implemented an **Export tickets to CSV** functionality on the "All Tickets" page. Users can click the "Export to CSV" button to download their currently viewed tickets as a `.csv` file.
+I implemented a **System-wide Dark Mode** feature. Users can click the Moon/Sun icon in the top right navigation bar to instantly toggle the entire application between a light theme and a dark theme.
 
 ### 2. Why you selected it
-Support teams frequently need to analyze data offline, share reports with management, or import ticket data into tools like Microsoft Excel or Tableau.
+Support agents often stare at screens for 8-10 hours a day. Giving them the ability to switch to a darker interface significantly improves accessibility and user comfort.
 
 ### 3. What problem it solves
-It frees data from being locked inside the dashboard. Instead of manually copying and pasting ticket rows to create a report, agents can instantly generate a structured CSV file that respects their active filters (e.g., exporting only "High" priority tickets).
+It reduces eye strain during long shifts, especially in low-light environments, and provides a modern, premium feel to the dashboard that users have come to expect from professional SaaS products.
 
 ### 4. What you would improve further
-Currently, the export happens purely on the frontend and only exports the tickets currently visible in the table. In the future, I would move the CSV generation logic to the backend (e.g., via a `/api/tickets/export` endpoint) so users can export the *entire* database of historical tickets all at once.
+Currently, the dark mode state is reset if the user refreshes the page. In the future, I would save their preference in the browser's `localStorage` or `sessionStorage` so that the application remembers their chosen theme across sessions.
 
 ## Declaration
 

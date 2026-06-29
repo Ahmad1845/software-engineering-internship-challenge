@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Ticket as TicketIcon, Plus, Settings, LogOut, Search, Bell, HelpCircle, Headset } from 'lucide-react';
+import { LayoutDashboard, Ticket as TicketIcon, Plus, Settings, LogOut, Search, Bell, HelpCircle, Headset, Moon, Sun } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import AllTickets from './pages/AllTickets';
 import CreateTicket from './pages/CreateTicket';
@@ -59,7 +59,7 @@ function Sidebar() {
   );
 }
 
-function Topbar() {
+function Topbar({ isDarkMode, toggleDarkMode }) {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -87,6 +87,9 @@ function Topbar() {
         />
       </div>
       <div className="topbar-actions">
+        <div onClick={toggleDarkMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          {isDarkMode ? <Sun size={20} className="topbar-icon" /> : <Moon size={20} className="topbar-icon" />}
+        </div>
         <img src="https://ui-avatars.com/api/?name=Admin&background=e5e7eb" alt="Profile" className="avatar" />
       </div>
     </div>
@@ -94,12 +97,24 @@ function Topbar() {
 }
 
 function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
   return (
     <Router>
       <div className="app-container">
         <Sidebar />
         <div className="main-wrapper">
-          <Topbar />
+          <Topbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           <div className="page-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
