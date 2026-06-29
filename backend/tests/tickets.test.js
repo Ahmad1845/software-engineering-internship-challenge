@@ -2,9 +2,10 @@ const request = require('supertest');
 const app = require('../server');
 const db = require('../database');
 
-beforeAll((done) => {
-    // Make sure table is created if using memory DB
-    db.run(`CREATE TABLE IF NOT EXISTS tickets (
+beforeAll(() => {
+    // The table is already created in database.js upon import,
+    // but just to be safe we can ensure it exists here.
+    db.exec(`CREATE TABLE IF NOT EXISTS tickets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_name TEXT NOT NULL,
         customer_email TEXT NOT NULL,
@@ -15,11 +16,11 @@ beforeAll((done) => {
         is_urgent BOOLEAN DEFAULT 0,
         created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_date DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, done);
+    )`);
 });
 
-afterAll((done) => {
-    db.close(done);
+afterAll(() => {
+    db.close();
 });
 
 describe('Tickets API', () => {
@@ -69,7 +70,7 @@ describe('Tickets API', () => {
                 customer_email: 'test3@example.com',
                 subject: 'Payment Issue',
                 description: 'This is an URGENT request to fix my payment.',
-                priority: 'Low' // Priority is Low but description has urgent
+                priority: 'Low'
             });
         
         expect(res.statusCode).toEqual(201);
@@ -111,7 +112,7 @@ describe('Tickets API', () => {
     it('should fail status update with invalid status', async () => {
         const res = await request(app)
             .patch(`/api/tickets/${ticketId}/status`)
-            .send({ status: 'Closed' }); // Invalid status
+            .send({ status: 'Closed' });
         
         expect(res.statusCode).toEqual(400);
         expect(res.body.error).toBe('Invalid status value');

@@ -25,19 +25,20 @@ router.post('/tickets', (req, res) => {
 
     const urgent = isUrgent(priority, description) ? 1 : 0;
 
-    const sql = `INSERT INTO tickets (customer_name, customer_email, subject, description, priority, is_urgent) 
-                 VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [customer_name, customer_email, subject, description, priority, urgent];
-
-    db.run(sql, params, function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO tickets (customer_name, customer_email, subject, description, priority, is_urgent) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        const result = stmt.run(customer_name, customer_email, subject, description, priority, urgent);
+        
         res.status(201).json({
             message: 'Ticket created successfully',
-            ticketId: this.lastID
+            ticketId: result.lastInsertRowid
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 2. Ticket Listing (with search, filter, sort)
@@ -67,26 +68,28 @@ router.get('/tickets', (req, res) => {
         sql += ` ORDER BY created_date DESC`;
     }
 
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
+    try {
+        const stmt = db.prepare(sql);
+        const rows = stmt.all(...params);
         res.json({ tickets: rows });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 3. Ticket Detail
 router.get('/tickets/:id', (req, res) => {
-    const sql = `SELECT * FROM tickets WHERE id = ?`;
-    db.get(sql, [req.params.id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
+    try {
+        const stmt = db.prepare(`SELECT * FROM tickets WHERE id = ?`);
+        const row = stmt.get(req.params.id);
+        
         if (!row) {
             return res.status(404).json({ error: 'Ticket not found' });
         }
         res.json({ ticket: row });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 4. Status Update
@@ -97,39 +100,38 @@ router.patch('/tickets/:id/status', (req, res) => {
         return res.status(400).json({ error: 'Invalid status value' });
     }
 
-    const sql = `UPDATE tickets SET status = ?, updated_date = CURRENT_TIMESTAMP WHERE id = ?`;
-    db.run(sql, [status, req.params.id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
+    try {
+        const stmt = db.prepare(`UPDATE tickets SET status = ?, updated_date = CURRENT_TIMESTAMP WHERE id = ?`);
+        const result = stmt.run(status, req.params.id);
+        
+        if (result.changes === 0) {
             return res.status(404).json({ error: 'Ticket not found' });
         }
         res.json({ message: 'Status updated successfully' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 5. General Ticket Update (Optional full update if needed)
 router.patch('/tickets/:id', (req, res) => {
-    // Basic implementation for changing anything else if needed
     res.status(501).json({ error: 'Not implemented, use /status for status update' });
 });
 
 // 6. Dashboard Statistics
 router.get('/dashboard', (req, res) => {
-    const sql = `
-        SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
-            SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_count,
-            SUM(CASE WHEN status = 'Resolved' THEN 1 ELSE 0 END) as resolved_count,
-            SUM(CASE WHEN is_urgent = 1 THEN 1 ELSE 0 END) as urgent_count
-        FROM tickets
-    `;
-    db.get(sql, [], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
+    try {
+        const stmt = db.prepare(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
+                SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_count,
+                SUM(CASE WHEN status = 'Resolved' THEN 1 ELSE 0 END) as resolved_count,
+                SUM(CASE WHEN is_urgent = 1 THEN 1 ELSE 0 END) as urgent_count
+            FROM tickets
+        `);
+        const row = stmt.get();
+        
         res.json({
             total: row.total || 0,
             open: row.open_count || 0,
@@ -137,7 +139,9 @@ router.get('/dashboard', (req, res) => {
             resolved: row.resolved_count || 0,
             urgent: row.urgent_count || 0
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 module.exports = router;
